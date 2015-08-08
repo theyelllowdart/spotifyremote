@@ -1,13 +1,18 @@
 {
   "name": "spotify remote",
   "description": "get access to the spotify remote service",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "scripts": [
+      "jquery-2.1.4.min.js",
+      "background.js"
+    ],
+    "persistent": true
   },
   "permissions": [
-    "tabs",
+    "webRequest",
+    "webRequestBlocking",
+    "alarms",
     "http://*/*",
     "https://*/*"
   ],
@@ -20,10 +25,11 @@
         "http://*/*",
         "https://*/*"
       ],
-      "js": ["content_script.js"],
+      "js": [
+        "content_script.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-  "web_accessible_resources": ["injected_spotify_iframe_script.js"],
   "manifest_version": 2
 }

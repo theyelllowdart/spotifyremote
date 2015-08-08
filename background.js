@@ -1,13 +1,63 @@
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  function (details) {
+    details.requestHeaders.push({
+      name: "Referer",
+      value: "https://embed.spotify.com/?uri=spotify:track:4bz7uB4edifWKJXSDxwHcs"
+    }, {
+      name: "Origin",
+      value: "https://embed.spotify.com"
+    });
+    return {requestHeaders: details.requestHeaders};
+  },
+  {urls: ["*://*.spotilocal.com/*"]},
+  ["blocking", "requestHeaders"]
+);
+
+var csrf;
+var oauth;
+var spotifyRemote = $.Deferred();
+
+function getCSRF() {
+  return $.ajax("https://blah.spotilocal.com:4371/simplecsrf/token.json", {cache: false})
+    .success(function (res) {
+      csrf = res.token;
+    });
+}
+function getOAuth() {
+  return $.ajax("https://open.spotify.com/token", {cache: false})
+    .success(function (res) {
+      oauth = res.t;
+    });
+}
+
+$.when(getCSRF(), getOAuth()).then(function () {
+  spotifyRemote.resolve();
+});
+
+chrome.alarms.create({periodInMinutes: 60});
+chrome.alarms.onAlarm.addListener(function () {
+  getCSRF();
+  getOAuth();
+});
+
 chrome.runtime.onMessage.addListener(function (request, sender) {
-  if (request.type === 'spotifyLoaded') {
-    chrome.tabs.executeScript(sender.tab.id, {allFrames: true, file: "content_spotify_iframe_script.js"});
-  } else if (request.type === 'ready') {
-    chrome.tabs.sendMessage(sender.tab.id, request)
-  } else if (request.type === 'playModeChangedEvent') {
-    chrome.tabs.sendMessage(sender.tab.id, request)
-  } else if (request.type === 'play') {
-    chrome.tabs.sendMessage(sender.tab.id, request)
-  } else if (request.type === 'pause') {
-    chrome.tabs.sendMessage(sender.tab.id, request)
-  }
+  spotifyRemote.then(function() {
+    if (request.type === 'play') {
+      $.ajax("https://blah.spotilocal.com:4371/remote/play.json", {
+        data: {
+          csrf: csrf,
+          oauth: oauth,
+          uri: request.song
+        }
+      });
+    } else if (request.type === 'pause') {
+      $.ajax("https://blah.spotilocal.com:4371/remote/pause.json", {
+        data: {
+          csrf: csrf,
+          oauth: oauth,
+          pause: true
+        }
+      });
+    }
+  });
 });
