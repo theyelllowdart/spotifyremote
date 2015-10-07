@@ -24,7 +24,7 @@ function getCSRF() {
     });
 }
 function getOAuth() {
-  return $.ajax("https://open.spotify.com/token", {cache: false})
+  return $.ajax("https://open.spotify.com/token", {cache: false, data: {'_': Date.now()}})
     .success(function (res) {
       oauth = res.t;
     });
