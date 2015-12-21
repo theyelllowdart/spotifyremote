@@ -1,7 +1,7 @@
 {
   "name": "spotify remote",
   "description": "get access to the spotify remote service",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "background": {
     "scripts": [
       "jquery-2.1.4.min.js",
